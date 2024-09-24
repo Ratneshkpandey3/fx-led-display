@@ -2,31 +2,6 @@
 version: "3"
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: currency_db
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: currency_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: user_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./data/rates_sample.csv:/var/lib/mysql-files/rates_sample.csv
-      - ./batch-processing/sql/:/docker-entrypoint-initdb.d/
-      - ./batch-processing/output:/batch-processing/output
-      - ./batch-processing/output:/var/lib/mysql-files/output/
-    command: --secure-file-priv=/var/lib/mysql-files
-    networks:
-      - mynetwork
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   zookeeper:
     image: wurstmeister/zookeeper:latest
     ports:
@@ -54,7 +29,7 @@ services:
 
   flask_app:
     build:
-      context: .
+      context: ../stream-processing
       dockerfile: Dockerfile
     container_name: currency_flask_app
     ports:
@@ -66,7 +41,7 @@ services:
       - mynetwork
     environment:
       FLASK_ENV: development
-
+      DATABASE_URL: mysql+pymysql://user:user_password@db:3306/currency_db
 networks:
   mynetwork:
     driver: bridge

@@ -10,15 +10,8 @@ BEGIN
     DECLARE yesterday_end_time DATETIME;
     DECLARE today_max_time BIGINT;
 
-
-    -- Uncomment only when testing with realtime data
-    -- SET yesterday_start_time = DATE_SUB(CONVERT_TZ(NOW(), 'UTC', 'America/New_York'), INTERVAL 1 DAY) + INTERVAL '16:59:30' HOUR_SECOND;
-    -- SET yesterday_end_time = yesterday_start_time + INTERVAL 30 SECOND;
-
-    -- because given sample csv file is from 20.02.2024 and I'm testing both recent rates and newyork time rates with the same file. If you want to run with real data comment below two lines and uncomment above two lines.
     SET yesterday_start_time =  '2024-02-20 16:59:30';
     SET yesterday_end_time = '2024-02-20 17:00:00';
-    -- Get the maximum event_time in milliseconds
     SELECT MAX(event_time) INTO today_max_time FROM currency_rates;
 
     WITH recent_rates AS (
@@ -30,8 +23,6 @@ BEGIN
         FROM currency_rates
         WHERE rate <> 0
         AND event_time >= today_max_time - active_time_limit
-        -- uncomment below line if you're running on real time data
-        -- AND event_time >= (UNIX_TIMESTAMP() * 1000) - 30000
     ),
     yesterday_rates AS (
         SELECT

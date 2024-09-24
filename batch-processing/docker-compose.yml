@@ -1,0 +1,31 @@
+---
+version: "3"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: currency_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: currency_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/rates_sample.csv:/var/lib/mysql-files/rates_sample.csv
+      - ./sql:/docker-entrypoint-initdb.d/
+      - ./output:/output
+      - ./output:/var/lib/mysql-files/output/
+    command: --secure-file-priv=/var/lib/mysql-files
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+networks:
+  mynetwork:
+    driver: bridge

@@ -1,14 +1,12 @@
-CREATE INDEX idx_event_time_table ON currency_rates(event_time);
+CREATE INDEX idx_event_time_table ON currency_rates(currency_pair, event_time);
 
--- Create the currency_rate_changes table to store results
 CREATE TABLE currency_rate_changes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ccy_couple VARCHAR(10) NOT NULL,
+    ccy_couple VARCHAR(10) NOT NULL PRIMARY KEY,
     rate DECIMAL(10, 5) NOT NULL,
-    `change` VARCHAR(10) NOT NULL
+    `change` VARCHAR(10) NOT NULL,
+    UNIQUE (ccy_couple)
 );
 
--- Create the event to update currency rates hourly
 DELIMITER //
 CREATE EVENT update_currency_rates_hourly_table
 ON SCHEDULE EVERY 1 HOUR
@@ -20,11 +18,9 @@ BEGIN
     DECLARE yesterday_end_time DATETIME;
     DECLARE today_max_time BIGINT;
 
-    -- Set the time ranges for yesterday
     SET yesterday_start_time = '2024-02-20 16:59:30';
     SET yesterday_end_time = '2024-02-20 17:00:00';
 
-    -- Get the maximum event_time in milliseconds
     SELECT MAX(event_time) INTO today_max_time FROM currency_rates;
 
     INSERT INTO currency_rate_changes (ccy_couple, rate, `change`)
@@ -58,7 +54,12 @@ BEGIN
     ) y ON r.currency_pair = y.currency_pair
     WHERE r.rn = 1 AND y.rn = 1
     ON DUPLICATE KEY UPDATE
-        rate = VALUES(rate),
-        `change` = VALUES(`change`);
+        rate = r.current_rate,
+        `change` = COALESCE(
+            CONCAT(
+                ROUND(100 * (r.current_rate - y.yesterday_rate) / y.yesterday_rate, 3), '%'
+            ),
+            'N/A'
+        );
 END //
 DELIMITER ;
