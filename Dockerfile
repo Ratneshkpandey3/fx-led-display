@@ -3,8 +3,8 @@ WORKDIR /stream_processing
 ENV POETRY_VERSION=1.8.3
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
-COPY pyproject.toml poetry.lock /stream_processing/
-RUN poetry install --no-dev
+COPY pyproject.toml /stream_processing/
+RUN poetry install --no-root --no-dev
 
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
