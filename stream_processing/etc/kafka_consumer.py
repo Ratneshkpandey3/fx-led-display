@@ -1,7 +1,8 @@
-from kafka import KafkaConsumer
 import json
-from kafka.errors import NoBrokersAvailable
 import time
+
+from kafka import KafkaConsumer
+from kafka.errors import NoBrokersAvailable
 
 KAFKA_TOPIC = "currency_rates"
 

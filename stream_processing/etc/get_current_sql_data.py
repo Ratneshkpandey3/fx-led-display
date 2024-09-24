@@ -1,6 +1,7 @@
+import time
+
 import mysql.connector
 from mysql.connector import Error
-import time
 
 
 def create_connection(max_retries=10):

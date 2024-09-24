@@ -1,9 +1,11 @@
-from kafka import KafkaProducer
 import json
 import time
-from .get_current_sql_data import create_connection
-from kafka.errors import NoBrokersAvailable
 from decimal import Decimal
+
+from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable
+
+from .get_current_sql_data import create_connection
 
 kafka_broker = "kafka:9093"
 

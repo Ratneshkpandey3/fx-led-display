@@ -1,7 +1,8 @@
-from flask import Flask, jsonify
+import threading
+
 from etc.kafka_consumer import consume_data
 from etc.kafka_producer import produce_data
-import threading
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 processed_data = []
