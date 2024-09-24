@@ -1,3 +1,4 @@
+import logging
 import threading
 from flask import Flask, jsonify
 from etc.kafka_consumer import KafkaConsumerManager
@@ -10,7 +11,9 @@ class DataProcessor:
 
     def pre_process_kafka_data(self):
         self.processed_data.clear()
-        for data in KafkaConsumerManager.consume_data():
+        kafka_consumer = KafkaConsumerManager()
+        kafka_consumer.create_kafka_consumer()
+        for data in kafka_consumer.consume_data():
             existing_entry = next(
                 (
                     entry
@@ -38,14 +41,15 @@ class FlaskApp:
             return jsonify(self.data_processor.processed_data)
 
     def run(self, host="0.0.0.0", port=5001):
-        print("Starting the Flask app now...")
+        logging.info("Starting the Flask app now...")
         self.app.run(host=host, port=port)
 
 
 if __name__ == "__main__":
     data_processor = DataProcessor()
-
-    produce_thread = threading.Thread(target=KafkaProducerManager.produce_data)
+    kafka_producer = KafkaProducerManager()
+    kafka_producer.create_kafka_producer()
+    produce_thread = threading.Thread(target=kafka_producer.produce_data)
     produce_thread.start()
 
     consume_thread = threading.Thread(target=data_processor.pre_process_kafka_data)

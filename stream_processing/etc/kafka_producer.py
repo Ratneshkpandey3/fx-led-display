@@ -1,16 +1,21 @@
 import json
+import logging
 import time
 from decimal import Decimal
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
 from .sql_connection import DatabaseConnection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class KafkaProducerManager:
-    def __init__(self, kafka_broker, topic, max_retries=10):
-        self.kafka_broker = kafka_broker
-        self.topic = topic
-        self.max_retries = max_retries
+    def __init__(self):
+        self.kafka_broker = os.getenv("KAFKA_BROKER")
+        self.topic = os.getenv("KAFKA_TOPIC")
+        self.max_retries = 10
         self.producer = None
 
     def create_kafka_producer(self):
@@ -23,11 +28,11 @@ class KafkaProducerManager:
                     bootstrap_servers=[self.kafka_broker],
                     value_serializer=lambda x: json.dumps(x).encode("utf-8"),
                 )
-                print("Kafka producer created successfully.")
+                logging.info("Kafka producer created successfully.")
                 return self.producer
             except NoBrokersAvailable:
                 retries += 1
-                print(
+                logging.info(
                     f"Broker unavailable. Retry {retries}/{self.max_retries} "
                     f"after {retry_delay} seconds..."
                 )
@@ -43,7 +48,8 @@ class KafkaProducerManager:
             connection = None
             cursor = None
             try:
-                connection = DatabaseConnection.create_connection()
+                data_connection = DatabaseConnection()
+                connection = data_connection.create_connection()
                 if connection is None:
                     raise Exception("Failed to connect to the database after retries.")
 
@@ -59,11 +65,11 @@ class KafkaProducerManager:
                     }
                     self.producer.send(self.topic, serialized_row)
 
-                print("Data produced to Kafka.")
+                logging.info("Data produced to Kafka.")
                 time.sleep(5)
 
             except Exception as e:
-                print(f"Error during data production: {e}")
+                logging.info(f"Error during data production: {e}")
                 time.sleep(10)
 
             finally:
@@ -71,4 +77,4 @@ class KafkaProducerManager:
                     cursor.close()
                 if connection is not None:
                     connection.close()
-                print("Connection closed. Attempting to reconnect...")
+                logging.info("Connection closed. Attempting to reconnect...")

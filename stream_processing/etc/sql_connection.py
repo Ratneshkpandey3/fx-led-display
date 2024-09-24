@@ -31,15 +31,15 @@ class DatabaseConnection:
                         password=self.password,
                         database=self.database,
                     )
-                    print("Connection to MySQL DB successful")
+                    logging.info("Connection to MySQL DB successful")
                     return self.connection
 
             except Error as e:
-                print(f"Failed to create a database connection: '{e}'")
+                logging.info(f"Failed to create a database connection: '{e}'")
 
             retry_count += 1
-            print(f"Retrying in 5 seconds... ({retry_count}/{self.max_retries})")
+            logging.info(f"Retrying in 5 seconds... ({retry_count}/{self.max_retries})")
             time.sleep(5)
 
-        print("Max retries reached. Failed to connect to the database.")
+        logging.info("Max retries reached. Failed to connect to the database.")
         return None

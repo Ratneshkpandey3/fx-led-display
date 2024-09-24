@@ -1,16 +1,21 @@
 import json
 import time
+import logging
 from kafka import KafkaConsumer
 from kafka.errors import NoBrokersAvailable
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 KAFKA_TOPIC = "currency_rates"
 
 
 class KafkaConsumerManager:
-    def __init__(self, topic, bootstrap_servers, max_retries=10):
-        self.topic = topic
-        self.bootstrap_servers = bootstrap_servers
-        self.max_retries = max_retries
+    def __init__(self):
+        self.topic = os.getenv("KAFKA_TOPIC")
+        self.bootstrap_servers = os.getenv("KAFKA_BROKER")
+        self.max_retries = 10
         self.consumer = None
 
     def create_kafka_consumer(self):
@@ -26,18 +31,18 @@ class KafkaConsumerManager:
                     auto_offset_reset="latest",
                     enable_auto_commit=True,
                 )
-                print("Kafka consumer created successfully.")
+                logging.info("Kafka consumer created successfully.")
                 return self.consumer
             except NoBrokersAvailable:
                 retries += 1
-                print(
+                logging.info(
                     f"Broker unavailable. Retry {retries}/{self.max_retries} "
                     f"after {retry_delay} seconds..."
                 )
                 time.sleep(retry_delay)
                 retry_delay *= 2
             except Exception as e:
-                print(f"Error creating Kafka consumer: {e}")
+                logging.info(f"Error creating Kafka consumer: {e}")
                 time.sleep(retry_delay)
                 retries += 1
                 retry_delay *= 2
