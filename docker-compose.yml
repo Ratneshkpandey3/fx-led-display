@@ -54,7 +54,7 @@ services:
 
   flask_app:
     build:
-      context: ./event_processing
+      context: .
       dockerfile: Dockerfile
     container_name: currency_flask_app
     ports:
