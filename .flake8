@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 88
+exclude = .git .venv __pycache__
+extend-ignore = E203, F841
+per-file-ignores = */__init__.py: F401
